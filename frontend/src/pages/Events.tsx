@@ -178,7 +178,11 @@ const Events: React.FC = () => {
           </div>
 
           <button
-            onClick={() => setFilters({ search: '', category: '', date: '' })}
+            onClick={() => {
+              setFilters({ search: '', category: '', date: '' });
+              // reset to first page so we don't stay on a page that no longer exists
+              setPagination(prev => ({ ...prev, currentPage: 1 }));
+            }}
             className="btn-secondary"
           >
             Clear Filters

@@ -47,20 +47,20 @@ const UserSchema = new Schema<IUser>({
   },
   studentId: {
     type: String,
-    required: function() {
+    required: function(this: IUser) {
       return this.role === 'student';
     }
   },
   organization: {
     type: Schema.Types.ObjectId,
     ref: 'Organization',
-    required: function() {
+    required: function(this: IUser) {
       return this.role === 'organizer';
     }
   },
   isApproved: {
     type: Boolean,
-    default: function() {
+    default: function(this: IUser) {
       return this.role === 'student' || this.role === 'admin';
     }
   },

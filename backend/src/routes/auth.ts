@@ -2,7 +2,7 @@ import express from 'express';
 import { body, validationResult } from 'express-validator';
 import jwt from 'jsonwebtoken';
 import User from '../models/User';
-import Organization from '../models/Organization';
+import Organization, { IOrganization } from '../models/Organization';
 import { authenticate, AuthRequest } from '../middleware/auth';
 
 const router = express.Router();
@@ -41,20 +41,13 @@ router.post('/register', [
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    let organization = null;
-    if (role === 'organizer') {
-      if (organizationName) {
-        // Check if organization exists
-        organization = await Organization.findOne({ name: organizationName });
-        if (!organization) {
-          return res.status(400).json({ message: 'Organization not found' });
-        }
-      } else {
-        return res.status(400).json({ message: 'Organization name is required for organizers' });
-      }
+  let organization: IOrganization | null = null;
+
+    if (role === 'organizer' && !organizationName) {
+      return res.status(400).json({ message: 'Organization name is required for organizers' });
     }
 
-    // Create user
+    // Create user instance but delay saving until organization is linked (organizer requires org)
     const user = new User({
       email,
       password,
@@ -62,11 +55,34 @@ router.post('/register', [
       lastName,
       role,
       studentId: role === 'student' ? studentId : undefined,
-      organization: role === 'organizer' ? organization?._id : undefined,
       phoneNumber,
       isApproved: role === 'student' // Students are auto-approved
     });
 
+    // If organizer, find or create organization and link it before saving user
+    if (role === 'organizer') {
+      // Try to find existing org by exact name (case-sensitive in DB unless collation set)
+      organization = await Organization.findOne({ name: organizationName });
+
+      if (!organization) {
+        // Create new organization with minimal required fields
+        const newOrg = new Organization({
+          name: organizationName,
+          description: `${organizationName} - created during user registration`,
+          contactEmail: email,
+          createdBy: user._id
+        });
+
+        organization = await newOrg.save();
+      }
+
+      // Link organization to user
+      user.organization = organization._id as any;
+      // Organizers should not be auto-approved by default
+      user.isApproved = false;
+    }
+
+    // Now save the user (password will be hashed in pre-save)
     await user.save();
 
     const token = generateToken((user._id as any).toString());

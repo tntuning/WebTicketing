@@ -1,3 +1,4 @@
+import dotenv from 'dotenv';
 const mongoose = require('mongoose');
 const Organization = require('./dist/models/Organization').default;
 const User = require('./dist/models/User').default;

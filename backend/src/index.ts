@@ -17,21 +17,50 @@ import notificationRoutes from './routes/notifications';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 
 // Security middleware
-app.use(helmet());
+// app.use(helmet());
+// app.use(cors({
+//   origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+//   credentials: true
+// }));
+
+// CORS configuration: allow requests from frontend
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100 // limit each IP to 100 requests per windowMs
+// Robust preflight handler: ensure OPTIONS requests always receive CORS headers
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', process.env.FRONTEND_URL || 'http://localhost:3000');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+
+  if (req.method === 'OPTIONS') {
+    // Preflight request. Stop here and respond with 204 No Content.
+    return res.sendStatus(204);
+  }
+
+  next();
 });
-app.use(limiter);
+
+// ✅ 3. Security middleware
+app.use(helmet());
+
+// ✅ 4. JSON body parsing
+app.use(express.json());
+
+// // Rate limiting
+// const limiter = rateLimit({
+//   windowMs: 15 * 60 * 1000, // 15 minutes
+//   max: 100 // limit each IP to 100 requests per windowMs
+// });
+// app.use(limiter);
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));

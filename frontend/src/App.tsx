@@ -34,6 +34,9 @@ function App() {
             <Routes>
               {/* Public routes */}
               <Route path="/" element={<Home />} />
+              
+              {/* Keep /home working for users who navigate there */}
+              <Route path="/home" element={<Navigate to="/" replace />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/events" element={<Events />} />

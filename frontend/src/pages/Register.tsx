@@ -221,21 +221,23 @@ const Register: React.FC = () => {
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Building className="h-5 w-5 text-gray-400" />
                   </div>
-                  <select
+                  {/* Use an input with datalist so users can type a new organization or select an existing one */}
+                  <input
                     id="organizationName"
                     name="organizationName"
+                    type="text"
                     required
                     className="input-field pl-10"
+                    placeholder="Type or select an organization"
                     value={formData.organizationName}
                     onChange={handleChange}
-                  >
-                    <option value="">Select an organization</option>
+                    list="orgs"
+                  />
+                  <datalist id="orgs">
                     {organizations.map((org) => (
-                      <option key={org._id} value={org.name}>
-                        {org.name}
-                      </option>
+                      <option key={org._id} value={org.name} />
                     ))}
-                  </select>
+                  </datalist>
                 </div>
               </div>
             )}
