@@ -13,6 +13,7 @@ import userRoutes from './routes/users';
 import qrRoutes from './routes/qr';
 import reportRoutes from './routes/reports';
 import notificationRoutes from './routes/notifications';
+import analyticsRoutes from './routes/analytics'; // Add this import
 
 dotenv.config();
 
@@ -75,6 +76,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/qr', qrRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/analytics', analyticsRoutes); // Add this line
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
